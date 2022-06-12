@@ -18,9 +18,13 @@ func NewBotHandler(service bot.Service) *botHandler {
 
 func (h botHandler) OnReady(session *discordgo.Session, message *discordgo.Ready) {
 	log.Println("bot is ready to listen the event")
-	h.botService.SendQuestion(session)
 }
 
 func (h botHandler) OnInteraction(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	log.Println("interaction created")
+	h.botService.ResponseInteraction(session, interaction)
+}
+
+func (h botHandler) SendQuestionToChannel(session *discordgo.Session) {
+	h.botService.SendQuestion(session)
 }

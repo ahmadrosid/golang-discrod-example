@@ -8,17 +8,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 )
-
-func main() {
-	cfg := config.Get()
-	initBot(cfg, func(discordBot *discordgo.Session) {
-		service := bot.NewService(cfg.QnaChannel)
-		botHandler := handler.NewBotHandler(service)
-		discordBot.AddHandler(botHandler.OnReady)
-		discordBot.AddHandler(botHandler.OnInteraction)
-	})
-}
 
 func initBot(cfg config.Config, f func(discordBot *discordgo.Session)) {
 	discordBot, err := discordgo.New("Bot " + cfg.Token)
@@ -39,4 +30,19 @@ func initBot(cfg config.Config, f func(discordBot *discordgo.Session)) {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 	log.Println("shutdown discordBot")
+}
+
+func main() {
+	cfg := config.Get()
+	initBot(cfg, func(discordBot *discordgo.Session) {
+		service := bot.NewService(cfg.QnaChannel)
+		botHandler := handler.NewBotHandler(service)
+		discordBot.AddHandler(botHandler.OnReady)
+		discordBot.AddHandler(botHandler.OnInteraction)
+
+		go func() {
+			time.Sleep(time.Second * 1)
+			botHandler.SendQuestionToChannel(discordBot)
+		}()
+	})
 }
