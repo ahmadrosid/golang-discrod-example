@@ -40,22 +40,28 @@ func (s *Service) SendQuestion(session *discordgo.Session) {
 }
 
 func (s *Service) ResponseInteraction(session *discordgo.Session, in *discordgo.InteractionCreate) {
-	log.Printf("%+v", in.User)
+	log.Printf("%+v", in.Interaction)
 	data := discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: fmt.Sprintf(
 				"Thanks <@%s> we will create thread for you!",
-				in.Interaction.User,
+				in.Interaction.Member.User.ID,
 			),
 		},
 	}
+
 	err := session.InteractionRespond(in.Interaction, &data)
 	if err != nil {
 		log.Printf("%v", err)
 	}
 
-	_, err = session.MessageThreadStart(s.channelId, in.Message.ID, fmt.Sprintf("new-thread-%v", time.Now().Unix()), 60)
+	ch, err := session.MessageThreadStart(s.channelId, in.Message.ID, fmt.Sprintf("new-thread-%v", time.Now().Unix()), 60)
+	if err != nil {
+		log.Printf("%v", err)
+	}
+
+	_, err = session.ChannelMessageSend(ch.ID, "Hi <@"+in.Interaction.Member.User.ID+"> please continue here!")
 	if err != nil {
 		log.Printf("%v", err)
 	}
